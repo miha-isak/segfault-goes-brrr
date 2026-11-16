@@ -4,7 +4,6 @@ import {
   normalizeLang,
   translate,
   formatChange,
-  toggleWatched,
   instrumentsFromPrices
 } from '/js/tradeline-core.js';
 
@@ -20,7 +19,7 @@ function t(key) {
 function renderWatchlist() {
   watchlistEl.innerHTML = '';
 
-  instruments.forEach((item, index) => {
+  instruments.forEach(item => {
     const li = document.createElement('li');
     if (item.watched) li.classList.add('watched');
 
@@ -37,15 +36,8 @@ function renderWatchlist() {
     change.className = 'change ' + formatted.direction;
     change.textContent = formatted.text;
 
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.textContent = item.watched ? t('unwatch') : t('watch');
-    button.addEventListener('click', () => {
-      instruments = toggleWatched(instruments, index);
-      renderWatchlist();
-    });
 
-    li.append(text, price, change, button);
+    li.append(text, price, change);
     watchlistEl.appendChild(li);
   });
 }

@@ -21,6 +21,10 @@ class RateLimiter:
         hits = self.hits[key]
         while hits and now - hits[0] > self.window:
             hits.popleft()
+        if len(self.hits) > 1000:  # drop idle clients so the map can't grow forever
+            for k in [k for k, v in self.hits.items() if not v or now - v[-1] > self.window]:
+                if k != key:
+                    del self.hits[k]
         if len(hits) >= self.limit:
             raise HTTPException(429, "Too many attempts, try again later")
         hits.append(now)

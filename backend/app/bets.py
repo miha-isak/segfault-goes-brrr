@@ -8,6 +8,7 @@ with the entry price. Win pays 2x stake, an unchanged price refunds the stake, l
 
 import asyncio
 import logging
+import time
 from datetime import UTC, datetime, timedelta
 from typing import Literal
 
@@ -22,13 +23,18 @@ from app.db import connect, get_db
 router = APIRouter()
 
 START_BALANCE = 100_000  # $1000.00
+RETRY_COUNT = 2  # extra price attempts after the first failure
+RETRY_DELAY = 10  # seconds between attempts
+MIN_STAKE = 100  # $1.00
+MAX_OPEN_BETS = 10
+_retries: dict[int, list] = {}  # bet id -> [failed attempts, next try (monotonic)]
 COINS = {"dogecoin", "shiba-inu", "pepe", "dogwifcoin", "bonk", "floki"}
 
 
 class BetCreate(BaseModel):
     coin_id: str
     direction: Literal["up", "down"]
-    stake: int = Field(ge=1, le=START_BALANCE, description="integer cents")
+    stake: int = Field(ge=MIN_STAKE, le=START_BALANCE, description="integer cents")
     seconds: int = Field(ge=5, le=3600)
 
 
@@ -58,21 +64,33 @@ async def settle_due(db, user_id: int | None, client: httpx.AsyncClient) -> None
         args += (user_id,)
     due = db.execute(query, args).fetchall()
     for bet in due:
+        retry = _retries.get(bet["id"], [0, 0.0])
+        if time.monotonic() < retry[1]:
+            continue  # waiting before the next price attempt
         try:
             price = await coingecko.fetch_price(client, bet["coin_id"], fresh=True)
         except HTTPException:
-            continue  # retried on the next background tick / request
-        if price == bet["entry_price"]:
-            status, payout = "push", bet["stake"]
-        elif (price > bet["entry_price"]) == (bet["direction"] == "up"):
-            status, payout = "won", bet["stake"] * 2
+            retry[0] += 1
+            if retry[0] <= RETRY_COUNT:
+                retry[1] = time.monotonic() + RETRY_DELAY
+                _retries[bet["id"]] = retry
+                continue
+            # Price still unavailable: give the stake back (no multiplier) and flag an error.
+            status, payout, price = "error", bet["stake"], None
         else:
-            status, payout = "lost", 0
-        db.execute(
-            "UPDATE bets SET status = ?, exit_price = ?, payout = ? WHERE id = ?",
+            if price == bet["entry_price"]:
+                status, payout = "push", bet["stake"]
+            elif (price > bet["entry_price"]) == (bet["direction"] == "up"):
+                status, payout = "won", bet["stake"] * 2
+            else:
+                status, payout = "lost", 0
+        _retries.pop(bet["id"], None)
+        # Only the caller that flips open -> settled may pay out (no double payout).
+        changed = db.execute(
+            "UPDATE bets SET status = ?, exit_price = ?, payout = ? WHERE id = ? AND status = 'open'",
             (status, price, payout, bet["id"]),
-        )
-        if payout:
+        ).rowcount
+        if changed and payout:
             db.execute(
                 "INSERT INTO ledger (user_id, amount, kind, bet_id, created_at)"
                 " VALUES (?, ?, 'payout', ?, ?)",
@@ -147,6 +165,11 @@ async def place_bet(
     ensure_wallet(db, user["id"])
     if balance(db, user["id"]) < bet.stake:
         raise HTTPException(400, "Not enough balance")
+    open_count = db.execute(
+        "SELECT COUNT(*) AS n FROM bets WHERE user_id = ? AND status = 'open'", (user["id"],)
+    ).fetchone()["n"]
+    if open_count >= MAX_OPEN_BETS:
+        raise HTTPException(400, f"Too many open bets (max {MAX_OPEN_BETS})")
     cursor = db.execute(
         "INSERT INTO bets (user_id, coin_id, direction, stake, seconds, entry_price,"
         " opened_at, settles_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",

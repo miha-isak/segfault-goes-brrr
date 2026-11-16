@@ -14,6 +14,7 @@ function result(bet) {
   if (bet.status === "open") return `⏳ до ${new Date(bet.settles_at).toLocaleTimeString("uk-UA")}`;
   if (bet.status === "won") return `✅ +${usd(bet.payout - bet.stake)}`;
   if (bet.status === "push") return "➖ повернуто";
+  if (bet.status === "error") return "⚠️ помилка ціни, ставку повернуто";
   return `❌ −${usd(bet.stake)}`;
 }
 

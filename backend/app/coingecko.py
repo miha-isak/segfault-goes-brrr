@@ -55,10 +55,26 @@ async def get_client() -> AsyncIterator[httpx.AsyncClient]:
         yield client
 
 
+_history_cache: dict[tuple, tuple[float, list]] = {}
+HISTORY_TTL = 60  # seconds
+
+
 async def fetch_price_history(
     client: httpx.AsyncClient, coin_id: str, vs_currency: str, days: int
 ) -> list[list[float]]:
-    """Return [[timestamp_ms, price], ...] for the last `days` days."""
+    """Return [[timestamp_ms, price], ...] for the last `days` days (cached 60 s)."""
+    key = (coin_id, vs_currency, days)
+    hit = _history_cache.get(key)
+    if hit and time.monotonic() - hit[0] < HISTORY_TTL:
+        return hit[1]
+    prices = await _fetch_history(client, coin_id, vs_currency, days)
+    _history_cache[key] = (time.monotonic(), prices)
+    return prices
+
+
+async def _fetch_history(
+    client: httpx.AsyncClient, coin_id: str, vs_currency: str, days: int
+) -> list[list[float]]:
     try:
         response = await client.get(
             f"/coins/{coin_id}/market_chart",
