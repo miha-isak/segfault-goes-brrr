@@ -15,6 +15,12 @@ jobs:
       - name: Run tests
         working-directory: backend
         run: uv run pytest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run frontend tests
+        working-directory: frontend
+        run: node --test
   deploy:
     needs: test
     runs-on: ubuntu-latest
