@@ -73,3 +73,10 @@ button:focus-visible, a.button:focus-visible { outline: 3px solid rgba(106, 92, 
 #reset-balance:hover { background: linear-gradient(135deg, #6a5cff, #19b6a6); color: #fff; border-color: transparent; }
 .lang button { padding: 0.3rem 0.7rem; border-radius: 999px; opacity: 0.7; }
 .lang button.active { opacity: 1; }
+
+/* ---- Leaderboard: wider and bigger ---- */
+.app.wide { max-width: 1100px; }
+.app.wide h2 { font-size: 2.2rem; }
+.app.wide table { width: 100%; font-size: 1.3rem; }
+.app.wide th, .app.wide td { padding: 0.9rem 1.1rem; text-align: left; }
+.app.wide tbody tr:nth-child(-n+3) { font-weight: 700; }
