@@ -3,9 +3,9 @@ import {
   DEFAULT_INSTRUMENTS,
   normalizeLang,
   translate,
-  validateEmail,
   formatChange,
-  toggleWatched
+  toggleWatched,
+  instrumentsFromPrices
 } from '/js/tradeline-core.js';
 
 let lang = DEFAULT_LANG;
@@ -15,11 +15,6 @@ const watchlistEl = document.getElementById('watchlist');
 
 function t(key) {
   return translate(lang, key);
-}
-
-function showMessage(el, text, type) {
-  el.textContent = text;
-  el.className = 'message' + (type ? ' ' + type : '');
 }
 
 function renderWatchlist() {
@@ -71,30 +66,28 @@ function applyLang(next) {
     btn.setAttribute('aria-pressed', String(active));
   });
 
-  showMessage(document.getElementById('signup-message'), '');
-  showMessage(document.getElementById('login-message'), '');
   renderWatchlist();
-}
-
-function handleEmailForm(formId, inputId, messageId, successKey) {
-  const form = document.getElementById(formId);
-  const input = document.getElementById(inputId);
-  const message = document.getElementById(messageId);
-
-  form.addEventListener('submit', event => {
-    event.preventDefault();
-    const result = validateEmail(input.value, successKey);
-    showMessage(message, t(result.key), result.type);
-    if (result.type === 'success') input.value = '';
-    input.focus();
-  });
 }
 
 document.querySelectorAll('.lang button').forEach(btn => {
   btn.addEventListener('click', () => applyLang(btn.dataset.lang));
 });
 
-handleEmailForm('signup-form', 'signup-email', 'signup-message', 'cta_ok');
-handleEmailForm('login-form', 'login-email', 'login-message', 'login_ok');
 
 applyLang(lang);
+
+async function loadPrices() {
+  const msg = document.getElementById('wl-msg');
+  try {
+    const res = await fetch('/api/prices');
+    if (!res.ok) throw new Error();
+    instruments = instrumentsFromPrices(await res.json(), instruments);
+    msg.textContent = '';
+  } catch {
+    msg.textContent = t('wl_err');
+  }
+  renderWatchlist();
+}
+
+loadPrices();
+setInterval(loadPrices, 15000);

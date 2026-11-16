@@ -1,3 +1,4 @@
+import asyncio
 import pathlib
 from contextlib import asynccontextmanager
 from typing import Annotated
@@ -15,7 +16,9 @@ FRONTEND_DIR = pathlib.Path(__file__).resolve().parents[2] / "frontend"
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     init_db()  # create tables once at startup
+    task = asyncio.create_task(bets.settle_loop())
     yield
+    task.cancel()
 
 
 app = FastAPI(title="segfault-goes-brrr", lifespan=lifespan)

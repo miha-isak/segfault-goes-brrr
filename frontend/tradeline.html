@@ -14,7 +14,8 @@
       <a href="#markets" data-i18n="nav_markets"></a>
       <a href="#why" data-i18n="nav_why"></a>
       <a href="#start" data-i18n="nav_start"></a>
-      <a href="#login" data-i18n="nav_login"></a>
+      <a href="/" data-i18n="nav_home"></a>
+      <a href="/login/" data-i18n="nav_login"></a>
       <span class="lang">
         <button type="button" data-lang="uk" aria-label="Українська">UA</button>
         <button type="button" data-lang="en" aria-label="English">EN</button>
@@ -27,16 +28,12 @@
     <h1 data-i18n="h1"></h1>
     <p data-i18n="lead"></p>
 
-    <form id="signup-form" novalidate>
-      <label for="signup-email" class="hint" hidden data-i18n="email_label"></label>
-      <input id="signup-email" type="text" autocomplete="email" data-i18n-ph="email_ph">
-      <button type="submit" data-i18n="cta"></button>
-    </form>
-    <div id="signup-message" class="message" role="status"></div>
+    <p><a class="button" href="/login/" data-i18n="cta"></a></p>
     <p class="hint" data-i18n="cta_hint"></p>
 
     <h2 id="markets" data-i18n="wl_title"></h2>
     <p class="hint" data-i18n="wl_note"></p>
+    <p id="wl-msg" class="hint"></p>
     <ul id="watchlist"></ul>
 
     <div class="stats">
@@ -61,22 +58,9 @@
       <li><h3 data-i18n="st3_h"></h3><p data-i18n="st3_p"></p></li>
     </ul>
 
-    <h2 id="login" data-i18n="login_h"></h2>
-    <p class="hint" data-i18n="login_p"></p>
-    <form id="login-form" novalidate>
-      <label for="login-email" hidden data-i18n="email_label"></label>
-      <input id="login-email" type="text" autocomplete="email" placeholder="name@example.com">
-      <button type="submit" data-i18n="login_btn"></button>
-    </form>
-    <div id="login-message" class="message" role="status"></div>
   </main>
 
   <footer>
-    <nav>
-      <a href="#" data-i18n="foot_terms"></a>
-      <a href="#" data-i18n="foot_priv"></a>
-      <a href="#" data-i18n="foot_support"></a>
-    </nav>
     <p data-i18n="foot_note"></p>
   </footer>
 

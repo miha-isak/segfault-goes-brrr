@@ -6,6 +6,7 @@ A bet is settled lazily: the first request after `settles_at` compares the curre
 with the entry price. Win pays 2x stake, an unchanged price refunds the stake, loss pays 0.
 """
 
+import asyncio
 from datetime import UTC, datetime, timedelta
 from typing import Literal
 
@@ -15,7 +16,7 @@ from pydantic import BaseModel, Field
 
 from app import coingecko
 from app.auth import current_user, now
-from app.db import get_db
+from app.db import connect, get_db
 
 router = APIRouter()
 
@@ -47,16 +48,19 @@ def balance(db, user_id: int) -> int:
     return row["b"]
 
 
-async def settle_due(db, user_id: int, client: httpx.AsyncClient) -> None:
-    due = db.execute(
-        "SELECT * FROM bets WHERE user_id = ? AND status = 'open' AND settles_at <= ?",
-        (user_id, now()),
-    ).fetchall()
+async def settle_due(db, user_id: int | None, client: httpx.AsyncClient) -> None:
+    """Settle due bets (of one user, or of everyone if user_id is None)."""
+    query = "SELECT * FROM bets WHERE status = 'open' AND settles_at <= ?"
+    args: tuple = (now(),)
+    if user_id is not None:
+        query += " AND user_id = ?"
+        args += (user_id,)
+    due = db.execute(query, args).fetchall()
     for bet in due:
         try:
-            price = await coingecko.fetch_price(client, bet["coin_id"])
+            price = await coingecko.fetch_price(client, bet["coin_id"], fresh=True)
         except HTTPException:
-            continue  # try again on the next request
+            continue  # retried on the next background tick / request
         if price == bet["entry_price"]:
             status, payout = "push", bet["stake"]
         elif (price > bet["entry_price"]) == (bet["direction"] == "up"):
@@ -71,12 +75,34 @@ async def settle_due(db, user_id: int, client: httpx.AsyncClient) -> None:
             db.execute(
                 "INSERT INTO ledger (user_id, amount, kind, bet_id, created_at)"
                 " VALUES (?, ?, 'payout', ?, ?)",
-                (user_id, payout, bet["id"], now()),
+                (bet["user_id"], payout, bet["id"], now()),
             )
 
 
 def bet_row(row) -> dict:
     return dict(row)
+
+
+@router.get("/prices")
+async def prices(client: httpx.AsyncClient = Depends(coingecko.get_client)) -> dict:
+    """Live USD price and 24h change of every bettable coin."""
+    return await coingecko.fetch_prices(client, sorted(COINS))
+
+
+async def settle_loop() -> None:
+    """Background task: settle bets right when they expire (not on the next request)."""
+    while True:
+        try:
+            conn = connect()
+            try:
+                async with coingecko.make_client() as client:
+                    with conn:
+                        await settle_due(conn, None, client)
+            finally:
+                conn.close()
+        except Exception:
+            pass  # never die; try again next tick
+        await asyncio.sleep(2)
 
 
 @router.get("/wallet")
@@ -113,7 +139,7 @@ async def place_bet(
 ) -> dict:
     if bet.coin_id not in COINS:
         raise HTTPException(400, "Unknown coin")
-    price = await coingecko.fetch_price(client, bet.coin_id)
+    price = await coingecko.fetch_price(client, bet.coin_id, fresh=True)
     opened = datetime.now(UTC)
 
     db.execute("BEGIN IMMEDIATE")  # lock so two requests can't spend the same balance
