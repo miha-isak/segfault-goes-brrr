@@ -3,11 +3,11 @@
 The database is a single file, backend/app.db. It is created automatically.
 """
 
-import os
 import sqlite3
-from pathlib import Path
 
-DB_PATH = Path(os.environ.get("DB_PATH", Path(__file__).parent.parent / "app.db"))
+from app.config import settings
+
+DB_PATH = settings.db_path
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
