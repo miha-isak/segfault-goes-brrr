@@ -4,6 +4,8 @@ from fastapi import APIRouter, FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from app import auth
+
 FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
 
 app = FastAPI(title="segfault-goes-brrr")
@@ -65,6 +67,7 @@ def delete_task(task_id: int) -> dict:
     return {"message": "Видалено", "id": task_id}
 
 
+api.include_router(auth.router)
 app.include_router(api)
 
 # Mounted last so /api routes take precedence; serves index.html at "/".

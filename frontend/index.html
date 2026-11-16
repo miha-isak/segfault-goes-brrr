@@ -1,11 +1,41 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>segfault-goes-brrr — login test</title>
+    <link rel="stylesheet" href="/css/main.css" />
+    <script type="module" src="/js/main.js"></script>
+  </head>
+  <body>
+    <main class="app">
+      <h1>Login test</h1>
+
+      <form data-endpoint="/api/auth/register">
+        <h2>Register</h2>
+        <label>Username <input name="username" required minlength="3" maxlength="32" pattern="[A-Za-z0-9_.\-]+" autocomplete="username" /></label>
+        <label>Password <input name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" /></label>
+        <button>Register</button>
+      </form>
+
+      <form data-endpoint="/api/auth/login">
+        <h2>Log in</h2>
+        <label>Username <input name="username" required autocomplete="username" /></label>
+        <label>Password <input name="password" type="password" required autocomplete="current-password" /></label>
+        <button>Log in</button>
+      </form>
+
+      <form data-endpoint="/api/auth/me" data-method="GET">
+        <h2>Session</h2>
+        <button>Who am I?</button>
+      </form>
+
+      <form data-endpoint="/api/auth/logout">
+        <button>Log out</button>
+      </form>
+
+      <h2>Response</h2>
+      <pre id="output" aria-live="polite">—</pre>
+    </main>
+  </body>
 </html>
