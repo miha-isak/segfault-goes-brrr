@@ -1,6 +1,3 @@
-/* Мінімальні стилі, щоб сторінкою взагалі можна було користуватись.
-   Коли зʼявиться дизайн — цей файл просто перепишемо. */
-
 body {
   font-family: Arial, sans-serif;
   max-width: 600px;
@@ -11,6 +8,64 @@ body {
 
 h1 {
   margin-bottom: 8px;
+}
+
+h2 {
+  margin: 40px 0 8px;
+  font-size: 22px;
+}
+
+h3 {
+  margin: 0 0 4px;
+  font-size: 16px;
+}
+
+p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+a {
+  color: #1a5fd0;
+}
+
+/* Шапка */
+header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 16px;
+}
+
+nav a {
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.lang button {
+  font-size: 13px;
+  padding: 4px 8px;
+}
+
+.lang button.active {
+  background: #222;
+  border-color: #222;
+  color: #fff;
 }
 
 .hint {
@@ -83,4 +138,95 @@ li .text.done {
 li button {
   font-size: 13px;
   padding: 4px 8px;
+}
+
+/* Список спостереження */
+li .price {
+  font-size: 15px;
+}
+
+li .change {
+  min-width: 64px;
+  font-size: 14px;
+  text-align: right;
+}
+
+li .change.up {
+  color: #27795a;
+}
+
+li .change.down {
+  color: #c0392b;
+}
+
+li.watched {
+  background: #f5f7fa;
+}
+
+/* Цифри */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.stats strong {
+  display: block;
+  font-size: 22px;
+}
+
+/* Переваги та кроки */
+.features li,
+.steps li {
+  display: block;
+}
+
+.steps {
+  counter-reset: step;
+}
+
+.steps li {
+  position: relative;
+  padding-left: 48px;
+}
+
+.steps li::before {
+  counter-increment: step;
+  content: counter(step);
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #222;
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 28px;
+  text-align: center;
+}
+
+/* Підвал */
+footer {
+  margin-top: 48px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e5e5;
+  font-size: 13px;
+  color: #777;
+}
+
+footer nav {
+  margin-bottom: 12px;
+}
+
+@media (max-width: 480px) {
+  form {
+    flex-direction: column;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
 }

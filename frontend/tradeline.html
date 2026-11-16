@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tradeline</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+
+  <header>
+    <div class="logo">Tradeline</div>
+    <nav>
+      <a href="#markets" data-i18n="nav_markets"></a>
+      <a href="#why" data-i18n="nav_why"></a>
+      <a href="#start" data-i18n="nav_start"></a>
+      <a href="#login" data-i18n="nav_login"></a>
+      <span class="lang">
+        <button type="button" data-lang="uk" aria-label="Українська">UA</button>
+        <button type="button" data-lang="en" aria-label="English">EN</button>
+      </span>
+    </nav>
+  </header>
+
+  <main>
+    <p class="hint" data-i18n="tagline"></p>
+    <h1 data-i18n="h1"></h1>
+    <p data-i18n="lead"></p>
+
+    <form id="signup-form" novalidate>
+      <label for="signup-email" class="hint" hidden data-i18n="email_label"></label>
+      <input id="signup-email" type="text" autocomplete="email" data-i18n-ph="email_ph">
+      <button type="submit" data-i18n="cta"></button>
+    </form>
+    <div id="signup-message" class="message" role="status"></div>
+    <p class="hint" data-i18n="cta_hint"></p>
+
+    <h2 id="markets" data-i18n="wl_title"></h2>
+    <p class="hint" data-i18n="wl_note"></p>
+    <ul id="watchlist"></ul>
+
+    <div class="stats">
+      <div><strong data-i18n="s1_n"></strong><span class="hint" data-i18n="s1_l"></span></div>
+      <div><strong data-i18n="s2_n"></strong><span class="hint" data-i18n="s2_l"></span></div>
+      <div><strong data-i18n="s3_n"></strong><span class="hint" data-i18n="s3_l"></span></div>
+      <div><strong data-i18n="s4_n"></strong><span class="hint" data-i18n="s4_l"></span></div>
+    </div>
+
+    <h2 id="why" data-i18n="why_h"></h2>
+    <p class="hint" data-i18n="why_p"></p>
+    <ul class="features">
+      <li><h3 data-i18n="f1_h"></h3><p data-i18n="f1_p"></p></li>
+      <li><h3 data-i18n="f2_h"></h3><p data-i18n="f2_p"></p></li>
+      <li><h3 data-i18n="f3_h"></h3><p data-i18n="f3_p"></p></li>
+    </ul>
+
+    <h2 id="start" data-i18n="steps_h"></h2>
+    <ul class="steps">
+      <li><h3 data-i18n="st1_h"></h3><p data-i18n="st1_p"></p></li>
+      <li><h3 data-i18n="st2_h"></h3><p data-i18n="st2_p"></p></li>
+      <li><h3 data-i18n="st3_h"></h3><p data-i18n="st3_p"></p></li>
+    </ul>
+
+    <h2 id="login" data-i18n="login_h"></h2>
+    <p class="hint" data-i18n="login_p"></p>
+    <form id="login-form" novalidate>
+      <label for="login-email" hidden data-i18n="email_label"></label>
+      <input id="login-email" type="text" autocomplete="email" placeholder="name@example.com">
+      <button type="submit" data-i18n="login_btn"></button>
+    </form>
+    <div id="login-message" class="message" role="status"></div>
+  </main>
+
+  <footer>
+    <nav>
+      <a href="#" data-i18n="foot_terms"></a>
+      <a href="#" data-i18n="foot_priv"></a>
+      <a href="#" data-i18n="foot_support"></a>
+    </nav>
+    <p data-i18n="foot_note"></p>
+  </footer>
+
+  <script src="/js/tradeline.js"></script>
+</body>
+</html>
