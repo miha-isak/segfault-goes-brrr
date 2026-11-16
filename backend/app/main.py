@@ -8,7 +8,7 @@ import httpx
 from fastapi import APIRouter, Depends, FastAPI, Path, Query
 from fastapi.staticfiles import StaticFiles
 
-from app import auth, bets, coingecko
+from app import auth, bets, coingecko, leaderboard
 from app.config import settings
 from app.db import init_db
 
@@ -52,6 +52,7 @@ async def history(
 
 api.include_router(auth.router)
 api.include_router(bets.router)
+api.include_router(leaderboard.router)
 app.include_router(api)
 
 # Mounted last so /api routes take precedence; serves index.html at "/".

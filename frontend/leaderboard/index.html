@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Лідерборд — segfault-goes-brrr</title>
+    <link rel="stylesheet" href="/css/main.css" />
+    <script type="module" src="/js/leaderboard.js"></script>
+  </head>
+  <body>
+    <main class="app narrow">
+      <p><a href="/">← На головну</a></p>
+
+      <section class="card">
+        <h2>Лідерборд</h2>
+        <p id="message" class="message" role="status" aria-live="polite">Завантаження…</p>
+        <table id="board" hidden>
+          <thead>
+            <tr><th scope="col">#</th><th scope="col">Користувач</th><th scope="col">Баланс</th><th scope="col">Максимум</th></tr>
+          </thead>
+          <tbody id="board-body"></tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>
