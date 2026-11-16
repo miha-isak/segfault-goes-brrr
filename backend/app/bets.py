@@ -7,6 +7,7 @@ with the entry price. Win pays 2x stake, an unchanged price refunds the stake, l
 """
 
 import asyncio
+import logging
 from datetime import UTC, datetime, timedelta
 from typing import Literal
 
@@ -101,7 +102,7 @@ async def settle_loop() -> None:
             finally:
                 conn.close()
         except Exception:
-            pass  # never die; try again next tick
+            logging.getLogger("app.bets").exception("settle loop failed; retrying")
         await asyncio.sleep(2)
 
 
