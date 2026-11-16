@@ -49,3 +49,27 @@ input, select {
 }
 input:focus, select:focus { outline: 2px solid #2a78d6; outline-offset: 1px; }
 tbody tr:hover { background: rgba(42, 120, 214, 0.07); }
+
+/* ---- Fancier buttons ---- */
+button, a.button {
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.02em;
+  background-size: 160% 160%;
+  background-position: 0% 50%;
+  box-shadow: 0 3px 10px rgba(42, 120, 214, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: transform 0.15s, box-shadow 0.15s, background-position 0.4s;
+}
+button:hover, a.button:hover { background-position: 100% 50%; }
+button:focus-visible, a.button:focus-visible { outline: 3px solid rgba(106, 92, 255, 0.5); outline-offset: 2px; }
+.bet-up { box-shadow: 0 3px 10px rgba(26, 127, 55, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25); }
+.bet-down { box-shadow: 0 3px 10px rgba(198, 40, 40, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25); }
+#reset-balance {
+  background: transparent;
+  color: #2a78d6;
+  border: 2px solid #2a78d6;
+  box-shadow: none;
+}
+#reset-balance:hover { background: linear-gradient(135deg, #6a5cff, #19b6a6); color: #fff; border-color: transparent; }
+.lang button { padding: 0.3rem 0.7rem; border-radius: 999px; opacity: 0.7; }
+.lang button.active { opacity: 1; }
