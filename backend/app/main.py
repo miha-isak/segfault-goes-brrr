@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from typing import Annotated
 
 import httpx
-from fastapi import APIRouter, Depends, FastAPI, Path, Query
+from fastapi import APIRouter, Depends, FastAPI, HTTPException, Path, Query
 from fastapi.staticfiles import StaticFiles
 
 from app import auth, bets, coingecko, leaderboard
@@ -46,6 +46,8 @@ async def history(
     vs_currency: Annotated[str, Query(pattern=r"^[a-z]{2,10}$")] = "usd",
     client: httpx.AsyncClient = Depends(coingecko.get_client),
 ) -> dict:
+    if coin_id not in bets.COINS:
+        raise HTTPException(404, f"Unknown coin '{coin_id}'")
     prices = await coingecko.fetch_price_history(client, coin_id, vs_currency, days)
     return {"coin_id": coin_id, "vs_currency": vs_currency, "days": days, "prices": prices}
 

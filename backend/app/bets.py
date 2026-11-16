@@ -28,7 +28,10 @@ RETRY_DELAY = 10  # seconds between attempts
 MIN_STAKE = 100  # $1.00
 MAX_OPEN_BETS = 10
 _retries: dict[int, list] = {}  # bet id -> [failed attempts, next try (monotonic)]
-COINS = {"dogecoin", "shiba-inu", "pepe", "dogwifcoin", "bonk", "floki"}
+COINS = {
+    "bitcoin", "ethereum", "solana", "binancecoin", "ripple",
+    "dogecoin", "shiba-inu", "pepe", "dogwifcoin", "bonk", "floki",
+}
 
 
 class BetCreate(BaseModel):

@@ -13,7 +13,7 @@ export const COPY = {
     empty_err: 'Введіть email.',
     wl_title: 'Список спостереження', wl_note: 'Живі ціни CoinGecko, USD', wl_err: 'Не вдалося завантажити ціни.',
     watch: 'Стежити', unwatch: 'Не стежити',
-    s1_n: '6', s1_l: 'мемкоїнів для ставок',
+    s1_n: '11', s1_l: 'монет для ставок',
     s2_n: '1 000 $', s2_l: 'віртуальних коштів на старті',
     s3_n: '0 $', s3_l: 'реальних грошей у грі',
     s4_n: '5 с – 1 год', s4_l: 'тривалість ставки',
@@ -43,7 +43,7 @@ export const COPY = {
     empty_err: 'Please enter your email.',
     wl_title: 'Watchlist', wl_note: 'Live CoinGecko prices, USD', wl_err: 'Could not load prices.',
     watch: 'Watch', unwatch: 'Unwatch',
-    s1_n: '6', s1_l: 'meme coins to bet on',
+    s1_n: '11', s1_l: 'coins to bet on',
     s2_n: '$1,000', s2_l: 'virtual funds to start with',
     s3_n: '$0', s3_l: 'real money at stake',
     s4_n: '5 s – 1 h', s4_l: 'bet duration',
@@ -69,6 +69,7 @@ export const DEFAULT_LANG = 'uk';
 
 // Демонстраційні дані для списку спостереження
 export const COIN_NAMES = {
+  bitcoin: 'Bitcoin', ethereum: 'Ethereum', solana: 'Solana', binancecoin: 'BNB', ripple: 'XRP',
   dogecoin: 'Dogecoin', 'shiba-inu': 'Shiba Inu', pepe: 'Pepe',
   dogwifcoin: 'dogwifhat', bonk: 'Bonk', floki: 'Floki'
 };

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>segfault-goes-brrr</title>
     <link rel="stylesheet" href="/css/main.css" />
-    <link rel="stylesheet" href="/css/polish.css" />
+    <link rel="stylesheet" href="/css/polish.css?v=2" />
     <script type="module" src="/js/main.js"></script>
     <script type="module" src="/js/bets.js"></script>
   </head>
@@ -13,8 +13,8 @@
     <main class="app">
       <header class="topbar">
         <h1>Мемкоїни</h1>
-        <a href="/tradeline.html">Tradeline</a>
-        <a href="/leaderboard/">🏆 Лідерборд</a>
+        <a class="btn" href="/tradeline.html">Tradeline</a>
+        <a class="btn" href="/leaderboard/">🏆 Лідерборд</a>
         <div id="account" class="account" aria-live="polite"></div>
       </header>
 
@@ -22,12 +22,21 @@
         <label>
           Монета
           <select name="coin">
+            <optgroup label="Топ-монети">
+              <option value="bitcoin">Bitcoin (BTC)</option>
+              <option value="ethereum">Ethereum (ETH)</option>
+              <option value="solana">Solana (SOL)</option>
+              <option value="binancecoin">BNB (BNB)</option>
+              <option value="ripple">XRP (XRP)</option>
+            </optgroup>
+            <optgroup label="Мемкоїни">
             <option value="dogecoin">Dogecoin (DOGE)</option>
             <option value="shiba-inu">Shiba Inu (SHIB)</option>
             <option value="pepe">Pepe (PEPE)</option>
             <option value="dogwifcoin">dogwifhat (WIF)</option>
             <option value="bonk">Bonk (BONK)</option>
             <option value="floki">Floki (FLOKI)</option>
+            </optgroup>
           </select>
         </label>
         <fieldset class="ranges">
