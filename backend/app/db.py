@@ -49,6 +49,14 @@ CREATE TABLE IF NOT EXISTS bets (
     payout      INTEGER
 );
 CREATE INDEX IF NOT EXISTS bets_user ON bets(user_id);
+
+-- One API key per user for scripts; only a hash is stored (the key is shown once).
+CREATE TABLE IF NOT EXISTS api_keys (
+    user_id    INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    key_hash   TEXT NOT NULL UNIQUE,
+    prefix     TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
 """
 
 

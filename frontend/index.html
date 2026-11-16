@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/css/polish.css?v=2" />
     <script type="module" src="/js/main.js"></script>
     <script type="module" src="/js/bets.js"></script>
+    <script type="module" src="/js/api-key.js"></script>
   </head>
   <body>
     <main class="app">
@@ -101,6 +102,33 @@
           <thead><tr><th>Монета</th><th>Напрям</th><th>Сума</th><th>Результат</th></tr></thead>
           <tbody id="bets-body"></tbody>
         </table>
+      </section>
+
+      <section class="card" id="api-card" hidden>
+        <h2>API для скриптів (квант-режим)</h2>
+        <p>Створіть ключ і торгуйте зі свого скрипта. Ключ показується один раз.</p>
+        <p>
+          <button type="button" id="api-create">Створити / замінити ключ</button>
+          <button type="button" id="api-revoke">Відкликати ключ</button>
+        </p>
+        <p id="api-status" class="message" role="status"></p>
+        <pre id="api-key-box" hidden></pre>
+        <details>
+          <summary>Приклад на Python</summary>
+          <pre>import requests
+
+BASE = "https://segfault-goes-brrrrrrr.duckdns.org/api"
+H = {"Authorization": "Bearer sgb_..."}   # ваш ключ
+
+prices = requests.get(f"{BASE}/prices").json()
+print(requests.get(f"{BASE}/wallet", headers=H).json())
+
+# ставка: 10 $ (1000 центів), що ціна BTC піде вгору за 60 с
+bet = {"coin_id": "bitcoin", "direction": "up", "stake": 1000, "seconds": 60}
+print(requests.post(f"{BASE}/bets", json=bet, headers=H).json())
+print(requests.get(f"{BASE}/bets", headers=H).json())</pre>
+          <p>Ліміт: 60 запитів на хвилину на ключ. Суми — у центах.</p>
+        </details>
       </section>
     </main>
   </body>

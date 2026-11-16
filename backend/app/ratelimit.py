@@ -16,7 +16,9 @@ class RateLimiter:
         self.hits.clear()
 
     def __call__(self, request: Request) -> None:
-        key = client_ip(request)
+        self.check(client_ip(request))
+
+    def check(self, key: str) -> None:
         now = time.monotonic()
         hits = self.hits[key]
         while hits and now - hits[0] > self.window:

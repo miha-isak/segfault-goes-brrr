@@ -102,3 +102,39 @@ def test_stake_is_limited_by_balance_not_fixed_cap(client):
     # Stakes are limited by the balance only, not by a fixed cap.
     r = client.post("/api/bets", json={**BET, "stake": bets.START_BALANCE})
     assert r.status_code == 201
+
+
+def test_api_key_access(client):
+    assert client.get("/api/auth/api-key").json() == {"has_key": False, "prefix": None}
+    created = client.post("/api/auth/api-key")
+    assert created.status_code == 201
+    key = created.json()["api_key"]
+    assert key.startswith("sgb_")
+
+    script = TestClient(app)  # no cookie: only the key
+    assert script.get("/api/wallet").status_code == 401
+    headers = {"Authorization": f"Bearer {key}"}
+    assert script.get("/api/wallet", headers=headers).json()["balance"] == bets.START_BALANCE
+    assert script.get("/api/wallet", headers={"X-API-Key": key}).status_code == 200
+    placed = script.post("/api/bets", json=BET, headers=headers)
+    assert placed.status_code == 201
+    assert len(script.get("/api/bets", headers=headers).json()) == 1
+    assert script.get("/api/wallet", headers={"Authorization": "Bearer nope"}).status_code == 401
+    # keys can't manage keys; only a browser session can
+    assert script.post("/api/auth/api-key", headers=headers).status_code == 401
+
+    assert client.delete("/api/auth/api-key").status_code == 204
+    assert script.get("/api/wallet", headers=headers).status_code == 401
+
+
+def test_api_key_rate_limit(client):
+    from app.auth import api_key_limiter
+
+    key = client.post("/api/auth/api-key").json()["api_key"]
+    api_key_limiter.reset()
+    script = TestClient(app)
+    codes = [
+        script.get("/api/wallet", headers={"X-API-Key": key}).status_code for _ in range(62)
+    ]
+    assert codes[:60] == [200] * 60 and codes[60] == 429
+    api_key_limiter.reset()

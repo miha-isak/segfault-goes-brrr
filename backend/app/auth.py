@@ -13,7 +13,7 @@ import secrets
 import sqlite3
 from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
+from fastapi import APIRouter, Cookie, Depends, Header, HTTPException, Response
 from pydantic import BaseModel, Field
 
 from app.config import settings
@@ -26,6 +26,9 @@ SESSION_DAYS = 7
 
 # 10 register/login attempts per minute per IP.
 auth_limiter = RateLimiter(limit=10, window_seconds=60)
+
+# 60 API calls per minute per API key (scripts).
+api_key_limiter = RateLimiter(limit=60, window_seconds=60)
 
 
 class Credentials(BaseModel):
@@ -72,11 +75,8 @@ def now() -> str:
     return datetime.now(UTC).isoformat()
 
 
-def current_user(session: str | None = Cookie(default=None), db=Depends(get_db)) -> dict:
-    """Find the logged-in user from the `session` cookie, or answer 401.
-
-    Use it in any route that needs a logged-in user: `user: dict = Depends(current_user)`.
-    """
+def session_user(session: str | None = Cookie(default=None), db=Depends(get_db)) -> dict:
+    """Find the logged-in user from the `session` cookie, or answer 401 (browser only)."""
     if session is None:
         raise HTTPException(401, "Not logged in")
 
@@ -91,6 +91,39 @@ def current_user(session: str | None = Cookie(default=None), db=Depends(get_db))
 
     if row is None:
         raise HTTPException(401, "Not logged in")
+    return {"id": row["id"], "username": row["username"]}
+
+
+def _bearer(authorization: str | None, x_api_key: str | None) -> str | None:
+    if x_api_key:
+        return x_api_key.strip()
+    if authorization and authorization.lower().startswith("bearer "):
+        return authorization[7:].strip()
+    return None
+
+
+def current_user(
+    session: str | None = Cookie(default=None),
+    authorization: str | None = Header(default=None),
+    x_api_key: str | None = Header(default=None),
+    db=Depends(get_db),
+) -> dict:
+    """The user making the request: an API key (`Authorization: Bearer <key>` or
+    `X-API-Key`) if one is sent, otherwise the browser session cookie.
+
+    Use it in any route that needs a logged-in user: `user: dict = Depends(current_user)`.
+    """
+    key = _bearer(authorization, x_api_key)
+    if key is None:
+        return session_user(session, db)
+    row = db.execute(
+        "SELECT users.id, users.username FROM api_keys JOIN users ON users.id = api_keys.user_id"
+        " WHERE api_keys.key_hash = ?",
+        (hash_token(key),),
+    ).fetchone()
+    if row is None:
+        raise HTTPException(401, "Invalid API key")
+    api_key_limiter.check(f"key:{row['id']}")
     return {"id": row["id"], "username": row["username"]}
 
 
@@ -145,3 +178,32 @@ def logout(response: Response, session: str | None = Cookie(default=None), db=De
 @router.get("/me")
 def me(user: dict = Depends(current_user)):
     return user
+
+
+# ---------- API keys (managed from the browser, used from scripts) ----------
+
+
+@router.get("/api-key")
+def api_key_info(user: dict = Depends(session_user), db=Depends(get_db)) -> dict:
+    row = db.execute(
+        "SELECT prefix, created_at FROM api_keys WHERE user_id = ?", (user["id"],)
+    ).fetchone()
+    return {"has_key": row is not None, "prefix": row["prefix"] if row else None}
+
+
+@router.post("/api-key", status_code=201)
+def create_api_key(user: dict = Depends(session_user), db=Depends(get_db)) -> dict:
+    """Create (or replace) the user's API key. The key is returned once and never stored."""
+    key = "sgb_" + secrets.token_urlsafe(32)
+    db.execute(
+        "INSERT INTO api_keys (user_id, key_hash, prefix, created_at) VALUES (?, ?, ?, ?)"
+        " ON CONFLICT(user_id) DO UPDATE SET key_hash = excluded.key_hash,"
+        " prefix = excluded.prefix, created_at = excluded.created_at",
+        (user["id"], hash_token(key), key[:8], now()),
+    )
+    return {"api_key": key, "prefix": key[:8]}
+
+
+@router.delete("/api-key", status_code=204)
+def revoke_api_key(user: dict = Depends(session_user), db=Depends(get_db)):
+    db.execute("DELETE FROM api_keys WHERE user_id = ?", (user["id"],))
