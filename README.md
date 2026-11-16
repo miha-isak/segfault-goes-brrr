@@ -29,9 +29,3 @@ Frontend code calls `fetch("/api/...")` — same origin, so no CORS setup is nee
 ```bash
 cd backend && uv run pytest
 ```
-
-Frontend unit tests (Node 22+, no dependencies):
-
-```bash
-cd frontend && node --test
-```
