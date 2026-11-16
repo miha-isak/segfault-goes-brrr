@@ -124,6 +124,25 @@ async def settle_loop() -> None:
         await asyncio.sleep(2)
 
 
+@router.post("/wallet/reset")
+def reset_wallet(user: dict = Depends(current_user), db=Depends(get_db)) -> dict:
+    """Set the balance back to the starting amount (refused while bets are open)."""
+    db.execute("BEGIN IMMEDIATE")
+    ensure_wallet(db, user["id"])
+    open_count = db.execute(
+        "SELECT COUNT(*) AS n FROM bets WHERE user_id = ? AND status = 'open'", (user["id"],)
+    ).fetchone()["n"]
+    if open_count:
+        raise HTTPException(400, "Wait for your open bets to finish before resetting")
+    diff = START_BALANCE - balance(db, user["id"])
+    if diff:
+        db.execute(
+            "INSERT INTO ledger (user_id, amount, kind, created_at) VALUES (?, ?, 'reset', ?)",
+            (user["id"], diff, now()),
+        )
+    return {"balance": START_BALANCE}
+
+
 @router.get("/wallet")
 async def wallet(
     user: dict = Depends(current_user),

@@ -84,3 +84,15 @@ def test_win_and_loss_settlement(client, monkeypatch):
         monkeypatch.undo()
     history = client.get("/api/bets").json()
     assert {b["status"] for b in history} == {"won", "lost"}
+
+
+def test_reset_wallet(client, monkeypatch):
+    assert client.post("/api/bets", json=BET).status_code == 201
+    assert client.post("/api/wallet/reset").status_code == 400  # bet still open
+    PRICE["value"] = 0.5
+    coingecko._price_cache.clear()
+    monkeypatch.setattr(bets, "now", lambda: "9999-01-01")  # bet is due, price fell: lost
+    assert client.get("/api/wallet").json()["balance"] == bets.START_BALANCE - 1000
+    monkeypatch.undo()
+    assert client.post("/api/wallet/reset").json() == {"balance": bets.START_BALANCE}
+    assert client.get("/api/wallet").json()["balance"] == bets.START_BALANCE

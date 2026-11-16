@@ -58,6 +58,19 @@ form.addEventListener("submit", async (event) => {
   }
 });
 
+document.getElementById("reset-balance").addEventListener("click", async () => {
+  messageEl.className = "message";
+  try {
+    await api("/api/wallet/reset", { method: "POST" });
+    messageEl.className = "message success";
+    messageEl.textContent = "Баланс скинуто до $1000";
+    await refresh();
+  } catch (err) {
+    messageEl.className = "message error";
+    messageEl.textContent = err.message;
+  }
+});
+
 if (await currentUser().catch(() => null)) {
   card.hidden = false;
   refresh().catch(() => {});
