@@ -34,7 +34,7 @@ COINS = {"dogecoin", "shiba-inu", "pepe", "dogwifcoin", "bonk", "floki"}
 class BetCreate(BaseModel):
     coin_id: str
     direction: Literal["up", "down"]
-    stake: int = Field(ge=MIN_STAKE, le=START_BALANCE, description="integer cents")
+    stake: int = Field(ge=MIN_STAKE, description="integer cents")
     seconds: int = Field(ge=5, le=3600)
 
 

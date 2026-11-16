@@ -63,7 +63,7 @@ def test_place_bet_deducts_stake(client):
 
 
 def test_rejects_overspend_and_bad_input(client):
-    assert client.post("/api/bets", json={**BET, "stake": bets.START_BALANCE + 1}).status_code == 422
+    assert client.post("/api/bets", json={**BET, "stake": bets.START_BALANCE + 1}).status_code == 400
     assert client.post("/api/bets", json={**BET, "direction": "sideways"}).status_code == 422
     assert client.post("/api/bets", json={**BET, "coin_id": "nope"}).status_code == 400
 
@@ -96,3 +96,9 @@ def test_reset_wallet(client, monkeypatch):
     monkeypatch.undo()
     assert client.post("/api/wallet/reset").json() == {"balance": bets.START_BALANCE}
     assert client.get("/api/wallet").json()["balance"] == bets.START_BALANCE
+
+
+def test_stake_is_limited_by_balance_not_fixed_cap(client):
+    # Stakes are limited by the balance only, not by a fixed cap.
+    r = client.post("/api/bets", json={**BET, "stake": bets.START_BALANCE})
+    assert r.status_code == 201
