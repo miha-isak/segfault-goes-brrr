@@ -1,10 +1,11 @@
 """Thin client for the CoinGecko public API."""
 
-import os
 from collections.abc import AsyncIterator
 
 import httpx
 from fastapi import HTTPException
+
+from app.config import settings
 
 BASE_URL = "https://api.coingecko.com/api/v3"
 
@@ -15,7 +16,7 @@ async def get_client() -> AsyncIterator[httpx.AsyncClient]:
     Sends the free Demo API key if COINGECKO_API_KEY is set; works keyless otherwise.
     """
     headers = {"accept": "application/json"}
-    api_key = os.environ.get("COINGECKO_API_KEY")
+    api_key = settings.coingecko_api_key
     if api_key:
         headers["x-cg-demo-api-key"] = api_key
     async with httpx.AsyncClient(base_url=BASE_URL, headers=headers, timeout=10) as client:

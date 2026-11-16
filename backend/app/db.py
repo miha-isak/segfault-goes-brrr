@@ -1,12 +1,14 @@
 """SQLite database (Python's built-in sqlite3 module).
 
-The database is a single file, backend/app.db. It is created automatically.
+The database is a single file (DB_PATH, default backend/app.db), created at startup.
 """
 
 import sqlite3
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent.parent / "app.db"
+from app.config import settings
+
+DB_PATH = settings.db_path
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
@@ -24,14 +26,25 @@ CREATE TABLE IF NOT EXISTS sessions (
 
 
 def connect(path=DB_PATH) -> sqlite3.Connection:
-    """Open the database and create the tables if they don't exist yet."""
+    """Open a connection to the database."""
     # check_same_thread=False: FastAPI may use the connection from another thread
     # during the same request. Each request gets its own connection, so this is safe.
-    conn = sqlite3.connect(path, check_same_thread=False)
+    conn = sqlite3.connect(path, check_same_thread=False, timeout=5)
     conn.row_factory = sqlite3.Row  # lets us write row["username"] instead of row[1]
     conn.execute("PRAGMA foreign_keys = ON")
-    conn.executescript(SCHEMA)
+    conn.execute("PRAGMA busy_timeout = 5000")  # wait up to 5 s if the database is locked
     return conn
+
+
+def init_db(path=DB_PATH) -> None:
+    """Create the tables if they don't exist yet. Called once at startup."""
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    conn = connect(path)
+    try:
+        conn.execute("PRAGMA journal_mode = WAL")  # readers don't block the writer
+        conn.executescript(SCHEMA)
+    finally:
+        conn.close()
 
 
 def get_db():

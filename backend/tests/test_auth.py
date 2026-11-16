@@ -1,13 +1,16 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from app.db import connect, get_db
+from app.auth import auth_limiter
+from app.db import connect, get_db, init_db
 from app.main import app
 
 
 @pytest.fixture
 def client(tmp_path):
     db_path = tmp_path / "test.db"
+    init_db(db_path)
+    auth_limiter.reset()
 
     def test_db():
         conn = connect(db_path)
@@ -85,3 +88,9 @@ def test_forged_session_rejected(client):
 )
 def test_rejects_invalid_input(client, creds):
     assert client.post("/api/auth/register", json=creds).status_code == 422
+
+
+def test_login_rate_limited(client):
+    codes = [client.post("/api/auth/login", json=CREDS).status_code for _ in range(12)]
+    assert codes[:10] == [401] * 10
+    assert codes[10:] == [429, 429]

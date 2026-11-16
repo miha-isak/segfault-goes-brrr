@@ -9,6 +9,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
+      - name: Lint
+        working-directory: backend
+        run: uv run ruff check .
       - name: Run tests
         working-directory: backend
         run: uv run pytest
@@ -25,7 +28,23 @@ jobs:
           script: |
             set -e
             cd /opt/app
+            PREV=$(git rev-parse HEAD)
             git fetch origin main
             git reset --hard origin/main
-            docker compose up -d --build
+            deploy() {
+              docker compose up -d --build
+              for i in $(seq 1 30); do
+                if docker compose exec -T app python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"; then
+                  return 0
+                fi
+                sleep 2
+              done
+              return 1
+            }
+            if ! deploy; then
+              echo "Health check failed, rolling back to $PREV"
+              git reset --hard "$PREV"
+              docker compose up -d --build
+              exit 1
+            fi
             docker image prune -f

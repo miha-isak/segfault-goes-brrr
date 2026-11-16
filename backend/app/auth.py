@@ -11,16 +11,21 @@ How it works:
 import hashlib
 import secrets
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
 from pydantic import BaseModel, Field
 
+from app.config import settings
 from app.db import get_db
+from app.ratelimit import RateLimiter
 
 router = APIRouter(prefix="/auth")
 
 SESSION_DAYS = 7
+
+# 10 register/login attempts per minute per IP.
+auth_limiter = RateLimiter(limit=10, window_seconds=60)
 
 
 class Credentials(BaseModel):
@@ -64,7 +69,7 @@ def hash_token(token: str) -> str:
 
 
 def now() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def current_user(session: str | None = Cookie(default=None), db=Depends(get_db)) -> dict:
@@ -92,7 +97,7 @@ def current_user(session: str | None = Cookie(default=None), db=Depends(get_db))
 # ---------- routes ----------
 
 
-@router.post("/register", status_code=201)
+@router.post("/register", status_code=201, dependencies=[Depends(auth_limiter)])
 def register(creds: Credentials, db=Depends(get_db)):
     try:
         cursor = db.execute(
@@ -104,7 +109,7 @@ def register(creds: Credentials, db=Depends(get_db)):
     return {"id": cursor.lastrowid, "username": creds.username}
 
 
-@router.post("/login")
+@router.post("/login", dependencies=[Depends(auth_limiter)])
 def login(creds: Credentials, response: Response, db=Depends(get_db)):
     user = db.execute(
         "SELECT id, username, password_hash FROM users WHERE username = ?", (creds.username,)
@@ -115,7 +120,7 @@ def login(creds: Credentials, response: Response, db=Depends(get_db)):
         raise HTTPException(401, "Invalid username or password")
 
     token = secrets.token_urlsafe(32)
-    expires = datetime.now(timezone.utc) + timedelta(days=SESSION_DAYS)
+    expires = datetime.now(UTC) + timedelta(days=SESSION_DAYS)
     db.execute("DELETE FROM sessions WHERE expires_at <= ?", (now(),))  # tidy up old sessions
     db.execute(
         "INSERT INTO sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)",
@@ -124,7 +129,8 @@ def login(creds: Credentials, response: Response, db=Depends(get_db)):
 
     # httponly: page JavaScript can't read the cookie. samesite: other sites can't send it.
     response.set_cookie(
-        "session", token, max_age=SESSION_DAYS * 24 * 3600, httponly=True, samesite="lax"
+        "session", token, max_age=SESSION_DAYS * 24 * 3600, httponly=True,
+        samesite="lax", secure=settings.cookie_secure,
     )
     return {"id": user["id"], "username": user["username"]}
 
