@@ -1,5 +1,6 @@
 """Thin client for the CoinGecko public API."""
 
+import logging
 import time
 from collections.abc import AsyncIterator
 
@@ -9,6 +10,36 @@ from fastapi import HTTPException
 from app.config import settings
 
 BASE_URL = "https://api.coingecko.com/api/v3"
+
+log = logging.getLogger("app.coingecko")
+
+# Last known state of the API key, shown in /api/health: unknown | ok | invalid | rate_limited | down
+status = {"key": "unknown", "last_ok": None, "last_error": None}
+
+
+def _record(response: httpx.Response | None, where: str) -> None:
+    """Log every CoinGecko call outcome; never log the key itself."""
+    if response is None:
+        status.update(key="down", last_error="unreachable")
+        log.warning("CoinGecko %s: unreachable (network error/timeout)", where)
+    elif response.status_code in (401, 403):
+        status.update(key="invalid", last_error=f"HTTP {response.status_code}")
+        log.error(
+            "CoinGecko %s: HTTP %s - API key is INVALID or EXPIRED (or not allowed): %s",
+            where, response.status_code, response.text[:200],
+        )
+    elif response.status_code == 429:
+        status.update(key="rate_limited", last_error="HTTP 429")
+        log.warning("CoinGecko %s: HTTP 429 - rate limited (key set: %s)", where,
+                    bool(settings.coingecko_api_key))
+    elif response.is_error:
+        status.update(last_error=f"HTTP {response.status_code}")
+        log.warning("CoinGecko %s: HTTP %s %s", where, response.status_code, response.text[:200])
+    else:
+        if status["key"] != "ok":
+            log.info("CoinGecko %s: OK - API works (key set: %s)", where,
+                     bool(settings.coingecko_api_key))
+        status.update(key="ok", last_ok=time.time(), last_error=None)
 
 
 async def get_client() -> AsyncIterator[httpx.AsyncClient]:
@@ -34,7 +65,9 @@ async def fetch_price_history(
             params={"vs_currency": vs_currency, "days": days},
         )
     except httpx.HTTPError:
+        _record(None, "request")
         raise HTTPException(502, "CoinGecko is unreachable")
+    _record(response, "request")
 
     if response.status_code == 404:
         raise HTTPException(404, f"Unknown coin '{coin_id}'")
@@ -84,7 +117,9 @@ async def fetch_prices(client: httpx.AsyncClient, coin_ids: list[str]) -> dict[s
             params={"ids": ",".join(coin_ids), "vs_currencies": "usd", "include_24hr_change": "true"},
         )
     except httpx.HTTPError:
+        _record(None, "request")
         raise HTTPException(502, "CoinGecko is unreachable")
+    _record(response, "request")
     if response.status_code == 429:
         raise HTTPException(429, "CoinGecko rate limit reached, try again later")
     if response.is_error:
@@ -114,7 +149,9 @@ async def fetch_price(
             "/simple/price", params={"ids": coin_id, "vs_currencies": vs_currency}
         )
     except httpx.HTTPError:
+        _record(None, "request")
         raise HTTPException(502, "CoinGecko is unreachable")
+    _record(response, "request")
     if response.status_code == 429:
         raise HTTPException(429, "CoinGecko rate limit reached, try again later")
     if response.is_error:

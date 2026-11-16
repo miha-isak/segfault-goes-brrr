@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import pathlib
 from contextlib import asynccontextmanager
 from typing import Annotated
@@ -8,6 +9,7 @@ from fastapi import APIRouter, Depends, FastAPI, Path, Query
 from fastapi.staticfiles import StaticFiles
 
 from app import auth, bets, coingecko
+from app.config import settings
 from app.db import init_db
 
 FRONTEND_DIR = pathlib.Path(__file__).resolve().parents[2] / "frontend"
@@ -16,6 +18,10 @@ FRONTEND_DIR = pathlib.Path(__file__).resolve().parents[2] / "frontend"
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     init_db()  # create tables once at startup
+    logging.basicConfig(level=logging.INFO)
+    logging.getLogger("app.coingecko").info(
+        "CoinGecko API key: %s", "SET" if settings.coingecko_api_key else "NOT SET (keyless, low rate limit)"
+    )
     task = asyncio.create_task(bets.settle_loop())
     yield
     task.cancel()
@@ -26,8 +32,11 @@ app = FastAPI(title="segfault-goes-brrr", lifespan=lifespan)
 api = APIRouter(prefix="/api")
 
 @api.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+def health() -> dict:
+    return {
+        "status": "ok",
+        "coingecko": {"key_set": bool(settings.coingecko_api_key), **coingecko.status},
+    }
 
 
 @api.get("/history/{coin_id}")
