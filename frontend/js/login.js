@@ -1,21 +1,29 @@
-// Each form sends its fields as JSON to its data-endpoint and shows the reply.
-const output = document.getElementById("output");
+import { api } from "/js/api.js";
 
+const message = document.getElementById("message");
+
+function show(text, type) {
+  message.textContent = text;
+  message.className = `message ${type}`;
+}
+
+// Both forms send {username, password}. After registering we log in right away.
 for (const form of document.querySelectorAll("form[data-endpoint]")) {
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const method = form.dataset.method ?? "POST";
-    const fields = Object.fromEntries(new FormData(form));
+    const creds = Object.fromEntries(new FormData(form));
+    const button = form.querySelector("button");
+    button.disabled = true;
+    show("…", "");
     try {
-      const res = await fetch(form.dataset.endpoint, {
-        method,
-        headers: { "content-type": "application/json" },
-        body: method === "GET" ? undefined : JSON.stringify(fields),
-      });
-      const text = await res.text();
-      output.textContent = `${res.status} ${res.statusText}\n${text}`;
+      if (form.dataset.endpoint === "/api/auth/register") {
+        await api("/api/auth/register", { method: "POST", body: creds });
+      }
+      await api("/api/auth/login", { method: "POST", body: creds });
+      location.href = "/";
     } catch (err) {
-      output.textContent = `error: ${err.message}`;
+      show(err.message, "error");
+      button.disabled = false;
     }
   });
 }

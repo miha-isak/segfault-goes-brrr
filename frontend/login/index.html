@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="uk">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Вхід — segfault-goes-brrr</title>
+    <link rel="stylesheet" href="/css/main.css" />
+    <script type="module" src="/js/login.js"></script>
+  </head>
+  <body>
+    <main class="app narrow">
+      <p><a href="/">← На головну</a></p>
+
+      <form class="card" data-endpoint="/api/auth/login">
+        <h2>Вхід</h2>
+        <label>Логін <input name="username" required autocomplete="username" /></label>
+        <label>Пароль <input name="password" type="password" required autocomplete="current-password" /></label>
+        <button>Увійти</button>
+      </form>
+
+      <form class="card" data-endpoint="/api/auth/register">
+        <h2>Реєстрація</h2>
+        <label>
+          Логін
+          <input name="username" required minlength="3" maxlength="32" pattern="[A-Za-z0-9_.\-]+" autocomplete="username" />
+          <small>3–32 символи: латиниця, цифри, _ . -</small>
+        </label>
+        <label>
+          Пароль
+          <input name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" />
+          <small>Щонайменше 8 символів</small>
+        </label>
+        <button>Зареєструватися</button>
+      </form>
+
+      <p id="message" class="message" role="status" aria-live="polite"></p>
+    </main>
+  </body>
+</html>

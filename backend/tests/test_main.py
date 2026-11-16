@@ -38,3 +38,9 @@ def test_task_errors():
     assert client.post("/api/tasks", json={}).status_code == 422
     assert client.post("/api/tasks/9999/toggle").status_code == 404
     assert client.post("/api/tasks/9999/delete").status_code == 404
+
+
+def test_serves_login_page():
+    response = client.get("/login")
+    assert response.status_code == 200
+    assert "/api/auth/login" in response.text

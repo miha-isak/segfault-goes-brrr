@@ -4,10 +4,9 @@ The database is a single file, backend/app.db. It is created automatically.
 """
 
 import sqlite3
+from pathlib import Path
 
-from app.config import settings
-
-DB_PATH = settings.db_path
+DB_PATH = Path(__file__).parent.parent / "app.db"
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (

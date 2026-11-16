@@ -1,41 +1,69 @@
 <!doctype html>
-<html lang="en">
+<html lang="uk">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>segfault-goes-brrr — login test</title>
+    <title>segfault-goes-brrr</title>
     <link rel="stylesheet" href="/css/main.css" />
     <script type="module" src="/js/main.js"></script>
   </head>
   <body>
     <main class="app">
-      <h1>Login test</h1>
+      <header class="topbar">
+        <h1>Мемкоїни</h1>
+        <div id="account" class="account" aria-live="polite"></div>
+      </header>
 
-      <form data-endpoint="/api/auth/register">
-        <h2>Register</h2>
-        <label>Username <input name="username" required minlength="3" maxlength="32" pattern="[A-Za-z0-9_.\-]+" autocomplete="username" /></label>
-        <label>Password <input name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" /></label>
-        <button>Register</button>
+      <form id="filters" class="filters">
+        <label>
+          Монета
+          <select name="coin">
+            <option value="dogecoin">Dogecoin (DOGE)</option>
+            <option value="shiba-inu">Shiba Inu (SHIB)</option>
+            <option value="pepe">Pepe (PEPE)</option>
+            <option value="dogwifcoin">dogwifhat (WIF)</option>
+            <option value="bonk">Bonk (BONK)</option>
+            <option value="floki">Floki (FLOKI)</option>
+          </select>
+        </label>
+        <fieldset class="ranges">
+          <legend>Період</legend>
+          <label><input type="radio" name="days" value="1" /> 24 год</label>
+          <label><input type="radio" name="days" value="7" checked /> 7 днів</label>
+          <label><input type="radio" name="days" value="30" /> 30 днів</label>
+          <label><input type="radio" name="days" value="90" /> 90 днів</label>
+          <label><input type="radio" name="days" value="365" /> Рік</label>
+        </fieldset>
+        <label>
+          Валюта
+          <select name="currency">
+            <option value="usd">USD</option>
+            <option value="eur">EUR</option>
+            <option value="uah">UAH</option>
+          </select>
+        </label>
       </form>
 
-      <form data-endpoint="/api/auth/login">
-        <h2>Log in</h2>
-        <label>Username <input name="username" required autocomplete="username" /></label>
-        <label>Password <input name="password" type="password" required autocomplete="current-password" /></label>
-        <button>Log in</button>
-      </form>
-
-      <form data-endpoint="/api/auth/me" data-method="GET">
-        <h2>Session</h2>
-        <button>Who am I?</button>
-      </form>
-
-      <form data-endpoint="/api/auth/logout">
-        <button>Log out</button>
-      </form>
-
-      <h2>Response</h2>
-      <pre id="output" aria-live="polite">—</pre>
+      <section class="card chart-card">
+        <div class="headline">
+          <span id="price" class="price">—</span>
+          <span id="change" class="change"></span>
+        </div>
+        <p id="chart-message" class="message" role="status" aria-live="polite">Завантаження…</p>
+        <div id="chart" class="chart">
+          <svg id="chart-svg" role="img" aria-labelledby="chart-title"><title id="chart-title">Графік ціни</title></svg>
+          <div id="tooltip" class="tooltip" hidden></div>
+        </div>
+        <details>
+          <summary>Таблиця даних</summary>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Час</th><th>Ціна</th></tr></thead>
+              <tbody id="table-body"></tbody>
+            </table>
+          </div>
+        </details>
+      </section>
     </main>
   </body>
 </html>
