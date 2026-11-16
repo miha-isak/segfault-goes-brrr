@@ -1,0 +1,51 @@
+/* Visual polish layer: gradients, nicer buttons and panels. Loaded after the page's main stylesheet. */
+:root {
+  --grad: linear-gradient(135deg, #6a5cff 0%, #2a78d6 55%, #19b6a6 100%);
+  --shadow: 0 6px 24px rgba(40, 60, 120, 0.12);
+}
+body {
+  background:
+    radial-gradient(900px 500px at 10% -10%, rgba(106, 92, 255, 0.16), transparent 60%),
+    radial-gradient(800px 500px at 100% 0%, rgba(25, 182, 166, 0.14), transparent 60%),
+    var(--color-bg, #fafbff);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+h1, h2, .logo {
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.card, .stats > div, .features li, .steps li {
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+}
+button, a.button {
+  display: inline-block;
+  border: 0;
+  border-radius: 10px;
+  padding: 0.55rem 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: #fff;
+  background: var(--grad);
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s, filter 0.12s;
+}
+button:hover, a.button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(42, 120, 214, 0.35);
+  filter: brightness(1.06);
+}
+button:active { transform: translateY(0); }
+button:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+.bet-up { background: linear-gradient(135deg, #1a7f37, #3ccf6a); }
+.bet-down { background: linear-gradient(135deg, #c62828, #ff7a59); }
+input, select {
+  border-radius: 8px;
+  border: 1px solid #c9ccd8;
+  padding: 0.45rem 0.6rem;
+}
+input:focus, select:focus { outline: 2px solid #2a78d6; outline-offset: 1px; }
+tbody tr:hover { background: rgba(42, 120, 214, 0.07); }
