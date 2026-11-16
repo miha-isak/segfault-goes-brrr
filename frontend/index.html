@@ -6,6 +6,7 @@
     <title>segfault-goes-brrr</title>
     <link rel="stylesheet" href="/css/main.css" />
     <script type="module" src="/js/main.js"></script>
+    <script type="module" src="/js/bets.js"></script>
   </head>
   <body>
     <main class="app">
@@ -63,6 +64,30 @@
             </table>
           </div>
         </details>
+      </section>
+
+      <section class="card bet-card" id="bet-card" hidden>
+        <h2>Ставка <span id="balance" class="balance"></span></h2>
+        <form id="bet-form" class="bet-form">
+          <label>Сума ($)
+            <input name="stake" type="number" min="0.01" step="0.01" value="10" required />
+          </label>
+          <label>Секунд
+            <select name="seconds">
+              <option value="10">10</option>
+              <option value="30" selected>30</option>
+              <option value="60">60</option>
+              <option value="300">300</option>
+            </select>
+          </label>
+          <button type="submit" name="direction" value="up" class="bet-up">▲ Ціна вгору</button>
+          <button type="submit" name="direction" value="down" class="bet-down">▼ Ціна вниз</button>
+        </form>
+        <p id="bet-message" class="message" role="status" aria-live="polite"></p>
+        <table>
+          <thead><tr><th>Монета</th><th>Напрям</th><th>Сума</th><th>Результат</th></tr></thead>
+          <tbody id="bets-body"></tbody>
+        </table>
       </section>
     </main>
   </body>

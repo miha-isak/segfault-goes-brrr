@@ -22,6 +22,33 @@ CREATE TABLE IF NOT EXISTS sessions (
     user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     expires_at TEXT NOT NULL
 );
+
+-- Wallet: balance = SUM(amount) per user. Amounts are integer cents, never floats.
+CREATE TABLE IF NOT EXISTS ledger (
+    id         INTEGER PRIMARY KEY,
+    user_id    INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    amount     INTEGER NOT NULL,
+    kind       TEXT NOT NULL,  -- bonus | stake | payout
+    bet_id     INTEGER,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ledger_user ON ledger(user_id);
+
+CREATE TABLE IF NOT EXISTS bets (
+    id          INTEGER PRIMARY KEY,
+    user_id     INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    coin_id     TEXT NOT NULL,
+    direction   TEXT NOT NULL,  -- up | down
+    stake       INTEGER NOT NULL,
+    seconds     INTEGER NOT NULL,
+    entry_price REAL NOT NULL,
+    opened_at   TEXT NOT NULL,
+    settles_at  TEXT NOT NULL,
+    status      TEXT NOT NULL DEFAULT 'open',  -- open | won | lost | push
+    exit_price  REAL,
+    payout      INTEGER
+);
+CREATE INDEX IF NOT EXISTS bets_user ON bets(user_id);
 """
 
 
