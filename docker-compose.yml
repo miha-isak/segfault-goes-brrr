@@ -5,6 +5,9 @@ services:
       - "8000"
     volumes:
       - ./data:/data
+    env_file:
+      - path: .env
+        required: false
     restart: unless-stopped
 
   caddy:
